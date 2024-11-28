@@ -1,4 +1,4 @@
-module devops/sarama-store
+module github.com/sirius2001/middleware
 
 go 1.22.0
 
