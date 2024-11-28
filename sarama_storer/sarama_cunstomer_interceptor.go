@@ -17,6 +17,9 @@ type DefalutConsumeInterceptor struct {
 
 // OnConsume implements sarama.ConsumerInterceptor.
 func (d *DefalutConsumeInterceptor) OnConsume(message *sarama.ConsumerMessage) {
+	d.dataLock.Lock()
+	defer d.dataLock.Unlock()
+
 	key := fmt.Sprintf("%s-%d", message.Topic, message.Partition)
 	if m, exits := d.data[key]; exits {
 		if message.Offset > m.Offset {
@@ -51,6 +54,7 @@ func NewDefalutConsumeInterceptor(storer Storer) sarama.ConsumerInterceptor {
 			for _, v := range d.data {
 				d.storer.Save(v)
 			}
+			d.dataLock.Unlock()
 		}
 	}()
 
