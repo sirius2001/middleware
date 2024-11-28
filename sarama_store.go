@@ -1,4 +1,4 @@
-package sarama_store
+package middleware
 
 import (
 	"errors"
