@@ -22,9 +22,14 @@ type DefaultProducerInterceptor struct {
 	records chan *ProducerRecord
 }
 
-func NewDefaultProducerInterceptor(db *gorm.DB) (*DefaultProducerInterceptor, error) {
+// conf.Consumer.Interceptors = append(conf.Consumer.Interceptors, )
+func NewDefaultProducerInterceptor(conf *sarama.Config, db *gorm.DB) (*DefaultProducerInterceptor, error) {
 	if db == nil {
 		return nil, errors.New("db is nil,system error")
+	}
+
+	if conf == nil {
+		return nil, errors.New("conf is nil,system error")
 	}
 
 	if err := db.AutoMigrate(); err != nil {
@@ -37,6 +42,8 @@ func NewDefaultProducerInterceptor(db *gorm.DB) (*DefaultProducerInterceptor, er
 	}
 
 	go p.revLoop()
+
+	conf.Producer.Interceptors = append(conf.Producer.Interceptors, p)
 
 	return p, nil
 }
@@ -61,7 +68,7 @@ func (d *DefaultProducerInterceptor) OnSend(msg *sarama.ProducerMessage) {
 func (d *DefaultProducerInterceptor) Offset(topic string, partition int32) (int64, error) {
 	p := new(ProducerRecord)
 	if err := d.db.Model(p).Where("id = ?", fmt.Sprintf("%s-%d", topic, partition)).First(&p).Error; err != nil {
-		return -1, err
+		return 0, err
 	}
 	return p.Offset, nil
 }
