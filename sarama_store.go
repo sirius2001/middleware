@@ -23,13 +23,9 @@ type DefaultProducerInterceptor struct {
 }
 
 // conf.Consumer.Interceptors = append(conf.Consumer.Interceptors, )
-func NewDefaultProducerInterceptor(conf *sarama.Config, db *gorm.DB) (*DefaultProducerInterceptor, error) {
+func NewDefaultProducerInterceptor(db *gorm.DB) (*DefaultProducerInterceptor, error) {
 	if db == nil {
 		return nil, errors.New("db is nil,system error")
-	}
-
-	if conf == nil {
-		return nil, errors.New("conf is nil,system error")
 	}
 
 	if err := db.AutoMigrate(); err != nil {
@@ -42,8 +38,6 @@ func NewDefaultProducerInterceptor(conf *sarama.Config, db *gorm.DB) (*DefaultPr
 	}
 
 	go p.revLoop()
-
-	conf.Producer.Interceptors = append(conf.Producer.Interceptors, p)
 
 	return p, nil
 }
