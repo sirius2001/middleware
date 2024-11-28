@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/sirius2001/middleware/sarama_storer"
@@ -20,7 +21,7 @@ func main() {
 	}
 
 	//实现storer
-	storer := sarama_storer.NewDBStorer(db)
+	storer := sarama_storer.NewGormStorer(db)
 
 	// 配置生产者
 	config := sarama.NewConfig()
@@ -36,14 +37,19 @@ func main() {
 
 	//查找storer中最后的offset
 	offset := storer.Offset("example-topic", 0)
-	
+
 	pc, err := consumer.ConsumePartition("example-topic", 0, offset)
 	if err != nil {
 		panic(err)
 	}
 
-	for m := range pc.Messages() {
-		fmt.Println(m)
+	for range 3 {
+		go func() {
+			for m := range pc.Messages() {
+				fmt.Println(m)
+			}
+		}()
 	}
 
+	time.Sleep(time.Second)
 }
