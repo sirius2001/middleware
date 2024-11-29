@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirius2001/middleware/sarama_storer"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -19,9 +20,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
-
+	_ = db
 	//实现storer
-	storer := sarama_storer.NewGormStorer(db)
+	//storer := sarama_storer.NewGormStorer(db)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "127.0.0.1:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	storer := sarama_storer.NewRDBStorer(rdb)
 
 	// 配置生产者
 	config := sarama.NewConfig()
